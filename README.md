@@ -1,0 +1,2 @@
+# typeracer
+cli typeracer
