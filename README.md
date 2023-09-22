@@ -1,2 +1,2 @@
-# typeracer
-cli typeracer
+# WPM
+cli type test
