@@ -33,7 +33,7 @@ type WordList struct {
 	Words              []string `json:"words"`
 }
 
-func intiailizeModel() model {
+func generateWords() []string {
 	jsonFile, err := os.ReadFile(path.Join("words/english.json"))
 	if err != nil {
 		fmt.Println(err)
@@ -47,6 +47,10 @@ func intiailizeModel() model {
 		generatedWords[i] = wordlist.Words[uint64(prob*float64(len(wordlist.Words)))]
 	}
 
+    return generatedWords[:]
+}
+func intiailizeModel() model {
+    generatedWords := generateWords()
 	model := model{
 		words:       generatedWords[:],
 		text:        strings.Join(generatedWords[:], " "),
@@ -82,6 +86,12 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "ctrl+c", "ctrl+d":
 			return m, tea.Quit
 
+		// case "ctrl+r":
+  //           newModel := intiailizeModel()
+  //           newModel.height = m.height
+  //           newModel.width = m.width
+  //           m = newModel
+
 		case tea.KeyBackspace.String():
 			if m.charPos != 0 {
 				if string(m.text[m.charPos-1]) != tea.KeySpace.String() {
@@ -95,16 +105,18 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					return m, nil
 				}
 
+				for string(m.text[m.charPos]) != " " {
+					m.charPos++
+				}
 				m.currentWord++
 			}
 
 			if msg.String() == string(m.text[m.charPos]) {
-
 			} else {
 			}
 
 			m.charPos++
-            startTimer(&m)
+			startTimer(&m)
 		}
 
 	}
@@ -124,18 +136,28 @@ func (m model) View() string {
 		acc = int((m.currentWord - m.wrongWords) / m.currentWord * 100)
 	}
 	s += fmt.Sprintf("WPM: %d\t", wpm)
-	s += fmt.Sprintf("ACC:  %d", acc)
+	s += fmt.Sprintf("ACC:  %d", acc) + "%"
 	s += "\n\n"
 
-	cursor := lipgloss.NewStyle().Blink(true).Underline(true).Bold(true)
-	s += m.text[:m.charPos] + cursor.Render(string(m.text[m.charPos])) + m.text[m.charPos+1:]
+	cursor := lipgloss.
+		NewStyle().
+		Background(lipgloss.AdaptiveColor{Light: "15", Dark: "0"})
 
-	style := lipgloss.NewStyle().Width(m.width).PaddingLeft(m.width / 10).PaddingRight(m.width / 10).PaddingTop(m.height / 2).PaddingBottom(m.height / 2)
+	faint := lipgloss.NewStyle().Faint(true)
+	s += m.text[:m.charPos] + cursor.Render(string(m.text[m.charPos])) + faint.Render(m.text[m.charPos+1:])
+
+	style := lipgloss.NewStyle().
+		Width(m.width).
+		PaddingLeft(m.width / 10).
+		PaddingRight(m.width / 10).
+		PaddingTop(m.height / 2).
+		PaddingBottom(m.height / 2)
+
 	return style.Render(s)
 }
 
 func main() {
-	p := tea.NewProgram(intiailizeModel(), tea.WithAltScreen(), tea.WithMouseAllMotion())
+	p := tea.NewProgram(intiailizeModel(), tea.WithAltScreen())
 	if _, err := p.Run(); err != nil {
 		fmt.Println("Something went wrong.")
 		os.Exit(1)
