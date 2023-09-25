@@ -185,8 +185,6 @@ func sum(arr []bool) int {
 
 func (m model) View() string {
 	s := fmt.Sprintf("[%d/%d]\t", m.currentWord, len(m.words))
-	// s += fmt.Sprintf("wrong words %d\t", sum(m.wrongWords))
-	// s += fmt.Sprintf("wrong char in word %d\t", sum(m.currMistakes))
 
 	if m.hasEnded {
 		wpm := int(float64(m.currentWord-sum(m.wrongWords)) / m.duration.Minutes())
@@ -204,14 +202,16 @@ func (m model) View() string {
 	faint := lipgloss.NewStyle().Faint(true)
 	s += strings.Join(m.formattedText, "") + cursor.Render(string(m.text[m.charPos])) + faint.Render(m.text[m.charPos+1:])
 
-	style := lipgloss.NewStyle().
+	// s += faint.Render("\n\n\n\nCtrl+C or Ctrl+D to quit")
+
+	layout := lipgloss.NewStyle().
 		Width(m.width).
 		PaddingLeft(m.width / 10).
 		PaddingRight(m.width / 10).
 		PaddingTop(m.height / 2).
 		PaddingBottom(m.height / 2)
 
-	return style.Render(s)
+	return layout.Render(s)
 }
 
 func main() {
